@@ -36,6 +36,9 @@ void scan_data(char *operator, double *operand) {
         *operator == '/' || *operator == '^') {
         scanf("%lf", &*operand);
     }
+
+    //Clear input buffer
+    fseek(stdin, 0, SEEK_END);
 }
 
 void do_next_op(double *accumulator, char operator, double operand) {
