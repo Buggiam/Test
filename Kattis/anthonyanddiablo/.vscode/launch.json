@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - anthonyanddiablo",
+            "request": "launch",
+            "mainClass": "anthonyanddiablo"
+        }
+    ]
+}

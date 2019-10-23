@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - missingnumbers",
+            "request": "launch",
+            "mainClass": "missingnumbers",
+            "projectName": "missingnumbers_c3a07a16"
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - areal",
+            "request": "launch",
+            "mainClass": "areal",
+            "projectName": "areal_129ffd4d"
+        }
+    ]
+}

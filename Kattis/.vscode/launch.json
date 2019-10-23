@@ -1,0 +1,49 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - dicecup",
+            "request": "launch",
+            "mainClass": "dicecup",
+            "projectName": "Kattis_8750705d"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - cd",
+            "request": "launch",
+            "mainClass": "cd",
+            "projectName": "Kattis_8750705d"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - everywhere",
+            "request": "launch",
+            "mainClass": "everywhere",
+            "projectName": "Kattis_8750705d"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - qaly",
+            "request": "launch",
+            "mainClass": "qaly"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - alphabetspam",
+            "request": "launch",
+            "mainClass": "alphabetspam"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - aliennumbers",
+            "request": "launch",
+            "mainClass": "aliennumbers"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - CalculatingDartScores",
+            "request": "launch",
+            "mainClass": "CalculatingDartScores"
+        }
+    ]
+}
