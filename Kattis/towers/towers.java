@@ -20,32 +20,34 @@ public class towers {
     }
 
     private static class Tower implements Comparable<Tower> {
-        private String s;
-        private int[] powers;
+        protected String s;
+        protected int[] p;
 
         public Tower(String s) {
             this.s = s;
 
             String[] parts = s.split("\\^");
 
-            powers = new int[parts.length];
+            p = new int[parts.length];
             for (int i = 0; i < parts.length; i++) {
-                powers[i] = Integer.parseInt(parts[i]);
+                p[i] = Integer.parseInt(parts[i]);
             }
+        }
+
+        //https://i.imgur.com/wnze6On.png
+        public int compareTo(Tower other) {
+            int[] o = other.p;
+            return 1;
         }
 
         public String toString() {
             return s;
         }
-
-        public int compareTo(Tower other) {
-            return 1;
-        }
     }
 
     private static class Node {
-        public Tower t = null;
-        public Node next;
+        protected Tower t = null;
+        protected Node next;
 
         public void add(Tower input) {
             if (t == null) {
@@ -53,9 +55,7 @@ public class towers {
                 return;
             }
 
-            if (next == null) {
-                next = new Node();
-            }
+            if (next == null) next = new Node();
 
             if (input.compareTo(t) < 0) {
                 next.add(t);
