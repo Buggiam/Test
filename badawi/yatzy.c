@@ -11,33 +11,38 @@ int highestEyeCountOccuringAmount(int throw[], int N, int amount, int eyesExempt
 int containsEyes(int throw[], int N, int eyes);
 
 int main(void) {
+	int N, result;
+	char input;
+
     srand(time(NULL));
 
-    int N;
-    printf("Vaelg antal terninger: ");
-    scanf("%d", &N);
+	do {
+		printf("Vaelg antal terninger: ");
+		scanf("%d", &N);
 
-    int result = play(N);
-    printf("Du fik %d point.\n", result);
+		result = play(N);
+    	printf("Du fik %d point.\n\n", result);
+
+		printf("Vil du spille Yatzy? (y/n)\n");
+		scanf(" %c", &input);
+	} while (input != 'n');
 
     return 0;
 }
 
 /*Starter et nyt Yatzy spil og returnerer resultatet (point).*/
 int play(int N) {
-    int scoreboard[15];
+	int scoreboard[15];
+    int round, firstSectionSum, totalScore, *throw, roundPoints, pair1, pair2, val, availableDice, eyes, i;
 
     /*Itererer igennem alle spillets runder. 15 i alt.*/
-    for (int round = 0; round < 15; round++) {
+    for (round = 0; round < 15; round++) {
 
-        /*Denne rundes terningekast. Inderholder N øjetal.*/
-        int *throw = roll_multiple_dies(N);
+        /*Denne rundes terningekast. Inderholder N terninger.*/
+        throw = roll_multiple_dies(N);
 
-        int roundPoints = 0;
-
-        /*Midlertidige variabler til brug i inden i switch.*/
-        int pair1, pair2, val;
-        int availableDice = 5;
+        roundPoints = 0;
+        availableDice = 5;
 
         switch (round) {
             case 0: /*Etere*/
@@ -71,6 +76,8 @@ int play(int N) {
             case 7: /*To par*/
                 printf("To par");
                 pair1 = highestEyeCountOccuringAmount(throw, N, 2, 0);
+				/*Hvis pair1 eksempelvis består af 2 seksere - Må pair2 ikke også bestå af seksere.
+				  Derfor udelukkes pair1 (antal øjne) som mulighed i søgningen på pair2.*/
                 pair2 = highestEyeCountOccuringAmount(throw, N, 2, pair1);
                 roundPoints = pair1 * 2 + pair2 * 2;
                 break;
@@ -90,7 +97,7 @@ int play(int N) {
                     containsEyes(throw, N, 4) &&
                     containsEyes(throw, N, 5)) {
                         roundPoints = 1 + 2 + 3 + 4 + 5;
-                    }
+                }
                 break;
             case 11: /*Stor straight*/
                 printf("Stor straight");
@@ -110,9 +117,9 @@ int play(int N) {
                 break;
             case 13: /*Chance*/
                 printf("Chance");
-                for (int eyes = 6; eyes >= 1; eyes--) {
+                for (eyes = 6; eyes >= 1; eyes--) {
                     val = occurancesOfEyes(throw, N, eyes);
-                    for (int i = 0; i < val; i++) {
+                    for (i = 0; i < val; i++) {
 
                         if (availableDice == 0) {
                             break;
@@ -124,46 +131,50 @@ int play(int N) {
                 break;
             case 14: /*Yatzy*/
                 printf("Yatzy");
-                if (highestEyeCountOccuringAmount(throw, N, 5, 0) != 0) {
+                if (highestEyeCountOccuringAmount(throw, N, 5, 0)) {
                     roundPoints = 50;
                 }
                 break;
         }
 
-        printf(": +%d point\n\n", roundPoints);
+		free(throw);
+
         scoreboard[round] = roundPoints;
+        printf(": +%d point\n\n", roundPoints);
     }
 
     /*Beregn total score.*/
-    int totalScore = 0;
-    for (int i = 0; i < 15; i++) {
+	totalScore = 0;
+
+    for (i = 0; i < 15; i++) {
         totalScore += scoreboard[i];
     }
 
     /*Beregner sum af den første sektion af runder.*/
-    int firstSectionSum = 0;
-    for (int i = 0; i < 6; i++) {
+    firstSectionSum = 0;
+
+    for (i = 0; i < 6; i++) {
         firstSectionSum += scoreboard[i];
     }
 
     /*Tilføjer bonus, hvis 63 point blev nået i første sektion.*/
     if (firstSectionSum >= 63) {
         totalScore += 50;
-        printf("Tillykke! Du fik din bonus!\n");
+        printf("Tillykke! Du fik din bonus! (%d >= %d)\n", firstSectionSum, 63);
         printf("  (+%d points)\n\n", 50);
     } else {
         printf("Oev, du fik ikke din bonus. (%d < %d)\n\n", firstSectionSum, 63);
     }
 
-
     return totalScore;
 }
 
-//Kaster N terniner og returnerer int array af øjnene på hver terning.
+/*Kaster N terniner og returnerer int array af hver terning.*/
 int *roll_multiple_dies(int N) {
     int *dice = malloc(N * sizeof(int));
-    for (int i = 0; i < N; i++) {
-        int throw = rollDice();
+	int i, throw;
+    for (i = 0; i < N; i++) {
+        throw = rollDice();
         dice[i] = throw;
         printf("%d, ", throw);
     }
@@ -172,22 +183,16 @@ int *roll_multiple_dies(int N) {
     return dice;
 }
 
+/*Genererer et tilfældigt tal mellem 1 og 6.*/
 int rollDice(void) {
     return 1 + rand() % 6;
 }
 
-//Returnerer 1, hvis throw[] indeholder en terning med eyes øjne. Eller 0.
-int containsEyes(int throw[], int N, int eyes) {
-    for (int i = 0; i < N; i++) {
-        if (throw[i] == eyes) return 1;
-    }
-    return 0;
-}
-
-/*Returnerer antan af terninger med eyes øjne i throw[].*/
+/*Returnerer antallet af terninger med antal øjne i kast.*/
 int occurancesOfEyes(int throw[], int N, int eyes) {
-    int amount = 0;
-    for (int i = 0; i < N; i++) {
+	int amount = 0;
+	int i;
+    for (i = 0; i < N; i++) {
         if (throw[i] == eyes) amount++;
     }
 
@@ -200,20 +205,25 @@ int occurancesOfEyes(int throw[], int N, int eyes) {
 
 /*Returnerer højeste øjetal, som throw[] indeholder amount af. eyeCountExempt er udelukket som mulighed.*/
 int highestEyeCountOccuringAmount(int throw[], int N, int amount, int eyeCountExempt) {
-    for (int eyes = 6; eyes >= 1; eyes--) {
+	int eyes, diceWithEyes;
+    for (eyes = 6; eyes >= 1; eyes--) {
         if (eyes == eyeCountExempt) continue;
 
-        int diceWithEyes = 0;
-        for (int dice = 0; dice < N; dice++) {
-            if (throw[dice] == eyes) {
-                diceWithEyes++;
-            }
-        }
+        diceWithEyes = occurancesOfEyes(throw, N, eyes);
 
         if (diceWithEyes >= amount) {
             return eyes;
         }
     }
 
+    return 0;
+}
+
+/*Returnerer 1, hvis throw[] indeholder minds én terning med eyes øjne. Ellers 0.*/
+int containsEyes(int throw[], int N, int eyes) {
+    int i;
+    for (i = 0; i < N; i++) {
+        if (throw[i] == eyes) return 1;
+    }
     return 0;
 }
