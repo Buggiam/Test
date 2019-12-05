@@ -18,8 +18,7 @@ public abstract class TCPCommunicator {
     private HashMap<Integer, TCPMessage> waitingMessages;
     private HashSet<Integer> approvedKeys;
 
-    private HashMap<Integer, Boolean> pinged;
-    protected boolean hasBeenPinged = false;
+    private HashSet<Integer> pinged;
 
     private boolean print = true;
     private String lastPrint = "";
@@ -44,7 +43,7 @@ public abstract class TCPCommunicator {
         try {
             waitingMessages = new HashMap<>();
             approvedKeys = new HashSet<>();
-            pinged = new HashMap<>();
+            pinged = new HashSet<>();
 
             address = InetAddress.getLocalHost();
             this.port = port;
@@ -59,7 +58,10 @@ public abstract class TCPCommunicator {
     }
 
     protected void listen(int listenForMs) {
-        setTimeout(listenForMs);
+        if (listenForMs != 0)
+            setTimeout(listenForMs);
+        else
+            setTimeout(1000);    
         long timeStarted = System.currentTimeMillis();
 
         while (listenForMs == 0 || System.currentTimeMillis() - timeStarted < listenForMs) {
@@ -70,7 +72,8 @@ public abstract class TCPCommunicator {
             try {
                 socket.receive(receivePacket);
             } catch (IOException e) {
-                print(String.format("Socket timeout after >%dms.", listenForMs));
+                if (listenForMs == 0)
+                    onListenTimeout();
                 continue;
             }
 
@@ -92,29 +95,25 @@ public abstract class TCPCommunicator {
 
             pingPackage.getMessage().setSender(address, port);
 
-            pinged.put(pingPackage.getMessage().getHandshakeKey(), false);
+            pinged.add(pingPackage.getMessage().getHandshakeKey());
 
             if (pingPackage.getToAddress().equals(address) && pingPackage.getToPort() == port) {
                 // Self ping
-                results[i] = true;
+                pinged.remove(pingPackage.getMessage().getHandshakeKey());
                 continue;
             }
 
-            boolean sent = sendMessage(pingPackage.getMessage(), pingPackage.getToAddress(), pingPackage.getToPort());
-
-            if (!sent) { 
-                results[i] = false; 
-                continue;
-            }
+            sendMessage(pingPackage.getMessage(), pingPackage.getToAddress(), pingPackage.getToPort());
         }
 
-        listen(500);
+        if (!pinged.isEmpty()) listen(30);
 
-        for (int i = 0; i < packages.size(); i++) { 
+        for (int i = 0; i < packages.size(); i++) {
             PingPackage pingPackage = packages.get(i);        
-            results[i] = pinged.get(pingPackage.getMessage().getHandshakeKey());
-            pinged.remove(pingPackage.getMessage().getHandshakeKey());
-        }           
+            results[i] = !pinged.contains(pingPackage.getMessage().getHandshakeKey());
+        }
+
+        pinged.clear();
 
         return results;
     }
@@ -152,7 +151,7 @@ public abstract class TCPCommunicator {
 
         waitingMessages.put(message.getHandshakeKey(), message);
 
-        listen(500);
+        listen(200);
 
         return !waitingMessages.containsKey(message.getHandshakeKey());
     }
@@ -160,7 +159,7 @@ public abstract class TCPCommunicator {
     // Called when a handshake-approved message is received. Override in subclasses.
     protected abstract void takeInMessage(TCPMessage message);
 
-    protected abstract void onPingAnswered();
+    protected abstract void onListenTimeout();
 
     protected void setTimeout(int ms) {
         try {
@@ -183,15 +182,10 @@ public abstract class TCPCommunicator {
         DatagramPacket datagramPacket = new DatagramPacket(messageBytes, messageBytes.length, toAddress, toPort);
 
         try {
-            // Pausing thread to prevent socket from being overused.
-            Thread.sleep(50);
             socket.send(datagramPacket);
             return true;
         } catch (IOException e) {
             System.out.printf("Exception thrown when sending %s to %s:%d.%n", message, toAddress, toPort);
-            return false;
-        } catch (InterruptedException e) {
-            System.out.printf("Exception thrown when pausing thread.%n", message, toAddress, toPort);
             return false;
         }
     }
@@ -209,15 +203,13 @@ public abstract class TCPCommunicator {
         if (message instanceof PingMessage) {
             PingMessage pingMessage = (PingMessage) message;
 
-            if (pinged.containsKey(message.getHandshakeKey())) {
-                // The print was sent from here and was a success
-                pinged.put(pingMessage.getHandshakeKey(), true);
-                return true;
+            if (pinged.contains(pingMessage.getHandshakeKey())) {
+                // The print was sent from here and was a success.
+                pinged.remove(pingMessage.getHandshakeKey());
+                return false;
             } else {
-                // The pring was sent to this node. Reply
-                hasBeenPinged = true;
+                // The ping was sent to this node. Reply.
                 sendMessage(pingMessage, message.getSenderAddress(), message.getSenderPort());
-                onPingAnswered();
                 return false;
             }
         }
@@ -241,7 +233,7 @@ public abstract class TCPCommunicator {
             print(String.format("Took in %s.", message.toString()));
             takeInMessage(message);
 
-            return true;
+            return false;
         } else {
             // Handshake initialization received.
             // Now, respond to the handshake and await the approved message.

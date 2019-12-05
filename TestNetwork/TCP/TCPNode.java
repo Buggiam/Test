@@ -13,7 +13,6 @@ public abstract class TCPNode extends TCPCommunicator {
     protected TCPNode(int port) {
         super(port);
         neighbors = new HashMap<>();
-        pingWaves = new ArrayList<>();
     }
 
     protected void introduceToNode(InetAddress nodeAddress, int nodePort) {
@@ -32,18 +31,12 @@ public abstract class TCPNode extends TCPCommunicator {
     protected abstract void onNeighborDie(String neighborName);
 
     protected void checkNeighbors() {
-        System.out.println("CHECKING NEIGHBORS...");
-
         String[] neighborNames = getNextNeighbors();
 
         ArrayList<PingPackage> pings = new ArrayList<>();
 
         for (String neighborName : neighborNames) {
             Node neighbor = getNeighbor(neighborName);
-
-            if (neighbor.address.equals(address) && neighbor.port == port) {
-                continue;
-            }
 
             PingMessage pingMessage = new PingMessage();
             PingPackage pingPackage = new PingPackage(pingMessage, neighbor.address, neighbor.port);
@@ -63,12 +56,11 @@ public abstract class TCPNode extends TCPCommunicator {
             }
         }
 
-        // To go back to unlimited listening after pinging neighbors, this is required.
-        listen();
+        setTimeout(1000);
     }
 
     @Override
-    protected void onPingAnswered() {
+    protected void onListenTimeout() {
         checkNeighbors();
     }
 
