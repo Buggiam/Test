@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug (Launch) - Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-TCPMessageClient<Tests_8d70f930>",
+            "request": "launch",
+            "mainClass": "MessageClient.TCPMessageClient",
+            "projectName": "Tests_8d70f930"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-PairNode<Tests_8d70f930>",
+            "request": "launch",
+            "mainClass": "PairNetwork.PairNode",
+            "projectName": "Tests_8d70f930"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-RingNode<Tests_8d70f930>",
+            "request": "launch",
+            "mainClass": "RingNode",
+            "projectName": "Tests_8d70f930",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Client",
+            "request": "launch",
+            "mainClass": "Client"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Node",
+            "request": "launch",
+            "mainClass": "Node"
+        }
+    ]
+}
