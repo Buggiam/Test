@@ -13,6 +13,7 @@ public abstract class TCPNode extends TCPCommunicator {
     protected TCPNode(int port) {
         super(port);
         neighbors = new HashMap<>();
+        pingWaves = new ArrayList<>();
     }
 
     protected void introduceToNode(InetAddress nodeAddress, int nodePort) {
@@ -41,7 +42,6 @@ public abstract class TCPNode extends TCPCommunicator {
             Node neighbor = getNeighbor(neighborName);
 
             if (neighbor.address.equals(address) && neighbor.port == port) {
-                System.out.println("SELF PING");
                 continue;
             }
 

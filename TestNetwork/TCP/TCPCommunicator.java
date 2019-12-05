@@ -108,7 +108,7 @@ public abstract class TCPCommunicator {
             }
         }
 
-        listen(100);
+        listen(500);
 
         for (int i = 0; i < packages.size(); i++) { 
             PingPackage pingPackage = packages.get(i);        
@@ -152,7 +152,7 @@ public abstract class TCPCommunicator {
 
         waitingMessages.put(message.getHandshakeKey(), message);
 
-        listen(100);
+        listen(500);
 
         return !waitingMessages.containsKey(message.getHandshakeKey());
     }
