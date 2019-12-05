@@ -73,11 +73,8 @@ public class RingNode extends TCPNode {
             // This is the initial entry point of the sender.
             // The sender must replace this node's 'nextnext'.
             setNeighbor("nextnext", intro.getIntroducedAddress(), intro.getIntroducedPort());
-
             intro.progressState();
-
             sendTCPMessage(intro, getNeighbor("next").address, getNeighbor("next").port);
-
             break;
         case Replacement:
             // The introduced node will be put in front of this node in the circle.
@@ -98,20 +95,12 @@ public class RingNode extends TCPNode {
             }
 
             setNeighbor("next", intro.getIntroducedAddress(), intro.getIntroducedPort());
-
             intro.progressState();
-
             sendTCPMessage(intro, intro.getIntroducedAddress(), intro.getIntroducedPort());
-
-            checkNeighbors();
-
             break;
         case Transfer:
             setNeighbor("next", intro.getNextAddress(), intro.getNextPort());
             setNeighbor("nextnext", intro.getNextNextAddress(), intro.getNextNextPort());
-
-            
-
             break;
         }
 
@@ -128,7 +117,6 @@ public class RingNode extends TCPNode {
             setNeighbor("nextnext", lost.getLostNextNextAddress(), lost.getLostNextNextPort());
 
             printNeighbors();
-
             return;
         }
 
