@@ -91,7 +91,7 @@ public abstract class TCPCommunicator {
 
     /**
      * Tells the communicator to listen for socket input forever, calling
-     * onListenTimeout() once every second.
+     * onListenTimeout() twice every second.
      */
     protected void listen() {
         listen(0);
@@ -99,11 +99,12 @@ public abstract class TCPCommunicator {
 
     /**
      * Pings another TCPCommunicator, expecting a response within 100ms. If a key
-     * (not 0) is provided, the PingMessage is configured as a handshake for an upcoming message.
+     * (not 0) is provided, the PingMessage is configured as a handshake for an
+     * upcoming message.
      * 
      * @param toAddress InetAddress of the targeted socket.
      * @param toPort    Port of the targeted socket.
-     * @param key       Key of message to be confirmed.
+     * @param key       Key of message to be accepted with ping.
      * @return true if a response was received. Otherwise false.
      */
     protected boolean ping(InetAddress toAddress, int toPort, int key) {
@@ -168,9 +169,8 @@ public abstract class TCPCommunicator {
         }
 
         if (!ping(toAddress, toPort, message.getHandshakeKey())) {
-            print(String.format("Handshake with %s:%d for %s failed.",
-                message.getReceiverAddress().getHostAddress(), message.getReceiverPort(),
-                message.getClass().getName()));
+            print(String.format("Handshake with %s:%d for %s failed.", message.getReceiverAddress().getHostAddress(),
+                    message.getReceiverPort(), message.getClass().getName()));
             return false;
         }
 
@@ -180,19 +180,18 @@ public abstract class TCPCommunicator {
         return sendMessage(message, toAddress, toPort);
     }
 
-    // Called when a handshake-approved message is received. Override in subclasses.
+    /**
+     * Called when a handshake-approved message is received.
+     * 
+     * @param message the approved TCPMessage to take in.
+     */
     protected abstract void takeInMessage(TCPMessage message);
 
+    /**
+     * Called twice every second between listening intervals allowing periodic
+     * activities.
+     */
     protected abstract void onListenTimeout();
-
-    protected void setTimeout(int ms) {
-        try {
-            socket.setSoTimeout(ms);
-        } catch (SocketException e) {
-            System.out.printf("Failed to set socket timeout %d for %s.%n", ms, getFullAddress());
-            e.printStackTrace();
-        }
-    }
 
     protected void print(String toPrint) {
         if (print && !lastPrint.equals(toPrint)) {
@@ -201,6 +200,28 @@ public abstract class TCPCommunicator {
         }
     }
 
+    /**
+     * Sets socket timeout.
+     * 
+     * @param ms
+     */
+    private void setTimeout(int ms) {
+        try {
+            socket.setSoTimeout(ms);
+        } catch (SocketException e) {
+            System.out.printf("Failed to set socket timeout %d for %s.%n", ms, getFullAddress());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sends a TCPMessage to a given socket.
+     * 
+     * @param message   to be sent to the socket.
+     * @param toAddress InetAddress of targeted socket.
+     * @param toPort    Port of the targeted socket.
+     * @return
+     */
     private boolean sendMessage(TCPMessage message, InetAddress toAddress, int toPort) {
         byte[] messageBytes = message.serialize();
         DatagramPacket datagramPacket = new DatagramPacket(messageBytes, messageBytes.length, toAddress, toPort);
@@ -214,13 +235,17 @@ public abstract class TCPCommunicator {
         }
     }
 
-    // Takes in and treats a given byte[] as a message.
-    // If parsing of the bytes fails, nothing is done.
-    // Considers all messages as a part of a handshake.
+    /**
+     * Takes in and treats a given byte[] as a TCPMessage. If parsing of the bytes
+     * fails, nothing is done.
+     * 
+     * @param messageBytes to be parsed into a TCPMessage.
+     * @return true if the given message is a response to a ping.
+     */
     private boolean processMessage(byte[] messageBytes) {
         TCPMessage message = TCPMessage.deserialize(messageBytes);
 
-        // deserialize returns null if the given byte array couldn't be deserialized.
+        // Deserialize returns null if the given byte array couldn't be deserialized.
         if (message == null)
             return false;
 
