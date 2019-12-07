@@ -148,8 +148,7 @@ public class RingNode extends TCPNode {
         Node next = getNeighbor("next");
         Node nextNext = getNeighbor("nextnext");
 
-        print("Next: " + next);
-        print("NextNext: " + nextNext);
+        print("> " + next + " > " + nextNext);
     }
 
     private static String START_REGEX_S = "^ *(\\d{4,5}) *((\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}|localhost):\\d{4,5})? *$";
