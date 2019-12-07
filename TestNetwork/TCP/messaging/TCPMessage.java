@@ -70,9 +70,13 @@ public abstract class TCPMessage implements Serializable {
         return receiverPort;
     }
 
+    public void setHandshakeKey(int key) {
+        handshakeKey = key;
+    }
+
     public int getHandshakeKey() {
         return handshakeKey;
-    }
+    }    
 
     public static TCPMessage deserialize(byte[] messageBytes) {
         try {

@@ -2,7 +2,6 @@ package TCP;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.HashMap;
 import java.util.HashSet;
 import TCP.messaging.*;
 
@@ -14,10 +13,8 @@ public abstract class TCPCommunicator {
     private DatagramSocket socket;
     private byte[] buffer;
 
-    private HashMap<Integer, TCPMessage> waitingMessages;
-    private HashSet<Integer> approvedKeys;
-
-    private HashSet<Integer> pinged;
+    private HashSet<Integer> pingedKeys;
+    private HashSet<Integer> acceptedKeys;
 
     private boolean print = true;
     private String lastPrint = "";
@@ -40,9 +37,8 @@ public abstract class TCPCommunicator {
 
     protected TCPCommunicator(int port) {
         try {
-            waitingMessages = new HashMap<>();
-            approvedKeys = new HashSet<>();
-            pinged = new HashSet<>();
+            pingedKeys = new HashSet<>();
+            acceptedKeys = new HashSet<>();
 
             address = InetAddress.getLocalHost();
             this.port = port;
@@ -58,11 +54,10 @@ public abstract class TCPCommunicator {
 
     /**
      * Tells the communicator to listen for socket input for a given amount of time.
-     * If 0 is given, it listens forever, calling onListenTimeout() once every
-     * second. If the method was called with a timelimit, it is assumed that either
-     * a handshake-confirmation or ping-response is expected. If one of those is
-     * received, the listening is cut short and assumed to have fulfilled its
-     * purpose.
+     * If 0 is given, it listens forever, calling onListenTimeout() twice every
+     * second. If the method was called with a timelimit, it is assumed that a
+     * ping-response is expected. If one is received, the listening is cut short and
+     * assumed to have fulfilled its purpose.
      * 
      * @param listenForMs time to listen.
      */
@@ -71,7 +66,7 @@ public abstract class TCPCommunicator {
             if (listenForMs != 0)
                 setTimeout(listenForMs);
             else
-                setTimeout(1000);
+                setTimeout(500);
 
             print(String.format("Listening at socket %s...", getFullAddress()));
             buffer = new byte[TCPMessage.BYTE_SIZE];
@@ -103,6 +98,43 @@ public abstract class TCPCommunicator {
     }
 
     /**
+     * Pings another TCPCommunicator, expecting a response within 100ms. If a key
+     * (not 0) is provided, the PingMessage is configured as a handshake for an upcoming message.
+     * 
+     * @param toAddress InetAddress of the targeted socket.
+     * @param toPort    Port of the targeted socket.
+     * @param key       Key of message to be confirmed.
+     * @return true if a response was received. Otherwise false.
+     */
+    protected boolean ping(InetAddress toAddress, int toPort, int key) {
+        PingMessage message = new PingMessage();
+
+        message.setSender(address, port);
+        message.setReceiver(toAddress, toPort);
+        if (key != 0) {
+            message.setHandshakeKey(key);
+            message.setIsHandshake(true);
+        }
+
+        if (toAddress.equals(address) && toPort == port) {
+            // Self ping
+            return true;
+        }
+
+        boolean sent = sendMessage(message, toAddress, toPort);
+
+        if (!sent)
+            return false;
+
+        pingedKeys.add(message.getHandshakeKey());
+        listen(100);
+        boolean success = !pingedKeys.contains(message.getHandshakeKey());
+
+        pingedKeys.clear();
+        return success;
+    }
+
+    /**
      * Pings another TCPCommunicator, expecting a response within 100ms.
      * 
      * @param toAddress InetAddress of the targeted socket.
@@ -110,28 +142,7 @@ public abstract class TCPCommunicator {
      * @return true if a response was received. Otherwise false.
      */
     protected boolean ping(InetAddress toAddress, int toPort) {
-        PingMessage message = new PingMessage();
-
-        message.setSender(address, port);
-        message.setReceiver(toAddress, toPort);
-
-        pinged.add(message.getHandshakeKey());
-
-        if (toAddress.equals(address) && toPort == port) {
-            // Self ping
-            pinged.remove(message.getHandshakeKey());
-        } else {
-            boolean sent = sendMessage(message, toAddress, toPort);
-
-            if (sent) {
-                listen(100);
-            }
-        }
-
-        boolean success = !pinged.contains(message.getHandshakeKey());
-        pinged.clear();
-
-        return success;
+        return ping(toAddress, toPort, 0);
     }
 
     /**
@@ -156,20 +167,17 @@ public abstract class TCPCommunicator {
             return true;
         }
 
-        boolean sent = sendMessage(message, toAddress, toPort);
-
-        if (!sent)
-            return false;
-
-        print(String.format("Sent handshake initialization to %s:%d for %s.",
+        if (!ping(toAddress, toPort, message.getHandshakeKey())) {
+            print(String.format("Handshake with %s:%d for %s failed.",
                 message.getReceiverAddress().getHostAddress(), message.getReceiverPort(),
                 message.getClass().getName()));
+            return false;
+        }
 
-        waitingMessages.put(message.getHandshakeKey(), message);
+        print(String.format("Handshake reply received for %s. Sending to %s:%d.", message.getClass().getName(),
+                message.getReceiverAddress().getHostAddress(), message.getReceiverPort()));
 
-        listen(100);
-
-        return !waitingMessages.containsKey(message.getHandshakeKey());
+        return sendMessage(message, toAddress, toPort);
     }
 
     // Called when a handshake-approved message is received. Override in subclasses.
@@ -218,47 +226,27 @@ public abstract class TCPCommunicator {
 
         if (message instanceof PingMessage) {
             PingMessage pingMessage = (PingMessage) message;
-
             if (pingMessage.getSenderAddress().equals(address) && pingMessage.getSenderPort() == port) {
-                // The print was sent from here and was a success.
-                pinged.remove(pingMessage.getHandshakeKey());
+                // The ping was sent from here and was a success.
+                pingedKeys.remove(pingMessage.getHandshakeKey());
                 return true;
             } else {
                 // The ping was sent to this node. Reply.
-                sendMessage(pingMessage, message.getSenderAddress(), message.getSenderPort());
+                if (pingMessage.isHandshake())
+                    acceptedKeys.add(pingMessage.getHandshakeKey());
+                sendMessage(message, pingMessage.getSenderAddress(), pingMessage.getSenderPort());
                 return false;
             }
         }
 
-        if (waitingMessages.containsKey(message.getHandshakeKey())) {
-            // Handshake reply received for waiting message.
-            TCPMessage waitingMessage = waitingMessages.get(message.getHandshakeKey());
-            waitingMessages.remove(message.getHandshakeKey());
-
-            print(String.format("Handshake reply received for %s. Sending to %s:%d.",
-                    waitingMessage.getClass().getName(), waitingMessage.getReceiverAddress().getHostAddress(),
-                    waitingMessage.getReceiverPort()));
-            sendMessage(waitingMessage, waitingMessage.getReceiverAddress(), waitingMessage.getReceiverPort());
-
-            return true;
-        } else if (approvedKeys.contains(message.getHandshakeKey())) {
+        if (acceptedKeys.contains(message.getHandshakeKey())) {
             // Approved message received
-            approvedKeys.remove(message.getHandshakeKey());
+            acceptedKeys.remove(message.getHandshakeKey());
 
             print(String.format("Took in %s.", message.toString()));
             takeInMessage(message);
-
-            return false;
-        } else {
-            // Handshake initialization received.
-            // Now, respond to the handshake and await the approved message.
-            approvedKeys.add(message.getHandshakeKey());
-
-            print(String.format("Handshake from %s:%d for %s.", message.getSenderAddress().getHostAddress(),
-                    message.getSenderPort(), message.getClass().getName()));
-            sendMessage(message, message.getSenderAddress(), message.getSenderPort());
-
-            return false;
         }
+
+        return false;
     }
 }
