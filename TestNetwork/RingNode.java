@@ -47,7 +47,7 @@ public class RingNode extends TCPNode {
 
     @Override
     protected void onNeighborDie(String neighborName) {
-        System.out.println("Neighbor lost: " + neighborName);
+        print("Neighbor lost: " + neighborName);
 
         if (hasNeighbor("nextnext")) {
             System.out.println("Restoring network...");
@@ -60,6 +60,7 @@ public class RingNode extends TCPNode {
         }
 
         removeNeighbor("next");
+        printNeighbors();
     }
 
     private void processIntroduction(RingIntroduction intro) {
@@ -140,18 +141,15 @@ public class RingNode extends TCPNode {
         printNeighbors();
 
         // Now forward the message around the network.
-
-        if (hasNeighbor("next")) {
-            sendTCPMessage(lost, next.address, next.port);
-        }
+        sendTCPMessage(lost, next.address, next.port);
     }
 
     private void printNeighbors() {
         Node next = getNeighbor("next");
         Node nextNext = getNeighbor("nextnext");
 
-        System.out.println("Next: " + next);
-        System.out.println("NextNext: " + nextNext);
+        print("Next: " + next);
+        print("NextNext: " + nextNext);
     }
 
     private static String START_REGEX_S = "^ *(\\d{4,5}) *((\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}|localhost):\\d{4,5})? *$";
