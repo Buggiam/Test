@@ -56,10 +56,20 @@ public abstract class TCPCommunicator {
         }
     }
 
+    /**
+     * Tells the communicator to listen for socket input for a given amount of time.
+     * If 0 is given, it listens forever, calling onListenTimeout() once every
+     * second. If the method was called with a timelimit, it is assumed that either
+     * a handshake-confirmation or ping-response is expected. If one of those is
+     * received, the listening is cut short and assumed to have fulfilled its
+     * purpose.
+     * 
+     * @param listenForMs time to listen.
+     */
     protected void listen(int listenForMs) {
         while (true) {
             if (listenForMs != 0)
-                setTimeout(listenForMs);  
+                setTimeout(listenForMs);
             else
                 setTimeout(1000);
 
@@ -75,7 +85,7 @@ public abstract class TCPCommunicator {
                     continue;
                 } else {
                     break;
-                }   
+                }
             }
 
             boolean finishedHandshake = processMessage(receivePacket.getData());
@@ -84,12 +94,23 @@ public abstract class TCPCommunicator {
         }
     }
 
+    /**
+     * Tells the communicator to listen for socket input forever, calling
+     * onListenTimeout() once every second.
+     */
     protected void listen() {
         listen(0);
     }
 
+    /**
+     * Pings another TCPCommunicator, expecting a response within 100ms.
+     * 
+     * @param toAddress InetAddress of the targeted socket.
+     * @param toPort    Port of the targeted socket.
+     * @return true if a response was received. Otherwise false.
+     */
     protected boolean ping(InetAddress toAddress, int toPort) {
-        PingMessage message = new PingMessage(); 
+        PingMessage message = new PingMessage();
 
         message.setSender(address, port);
         message.setReceiver(toAddress, toPort);
@@ -102,7 +123,7 @@ public abstract class TCPCommunicator {
         } else {
             boolean sent = sendMessage(message, toAddress, toPort);
 
-            if (sent) { 
+            if (sent) {
                 listen(100);
             }
         }
@@ -113,25 +134,36 @@ public abstract class TCPCommunicator {
         return success;
     }
 
-    protected boolean sendTCPMessage(TCPMessage message, InetAddress sendToAddress, int sendToPort) {
+    /**
+     * Sends a TCP message to a target socket. The process starts by blindly sending
+     * the message to the target. If a response is received from the target, the
+     * message is sent again and it is assumed that it was well-received.
+     * 
+     * @param message   to be sent to the target.
+     * @param toAddress InetAddress of the targeted socket.
+     * @param toPort    Port of the targeted socket.
+     * @return true if the handshake was answered and the message sent afterwards.
+     */
+    protected boolean sendTCPMessage(TCPMessage message, InetAddress toAddress, int toPort) {
         message.setSender(address, port);
-        message.setReceiver(sendToAddress, sendToPort);
+        message.setReceiver(toAddress, toPort);
         message.generateKey();
 
-        if (sendToAddress.equals(address) && sendToPort == port) {
+        if (toAddress.equals(address) && toPort == port) {
             // Message sent to self is transfered internally.
             print(String.format("Took in %s.", message.toString()));
             takeInMessage(message);
             return true;
         }
 
-        boolean sent = sendMessage(message, sendToAddress, sendToPort);
+        boolean sent = sendMessage(message, toAddress, toPort);
 
         if (!sent)
             return false;
 
-        print(String.format("Sent handshake initialization to %s:%d for %s.", 
-              message.getReceiverAddress().getHostAddress(), message.getReceiverPort(), message.getClass().getName()));
+        print(String.format("Sent handshake initialization to %s:%d for %s.",
+                message.getReceiverAddress().getHostAddress(), message.getReceiverPort(),
+                message.getClass().getName()));
 
         waitingMessages.put(message.getHandshakeKey(), message);
 
@@ -156,8 +188,8 @@ public abstract class TCPCommunicator {
 
     protected void print(String toPrint) {
         if (print && !lastPrint.equals(toPrint)) {
-             System.out.println(toPrint);
-             lastPrint = toPrint;
+            System.out.println(toPrint);
+            lastPrint = toPrint;
         }
     }
 
@@ -203,10 +235,9 @@ public abstract class TCPCommunicator {
             TCPMessage waitingMessage = waitingMessages.get(message.getHandshakeKey());
             waitingMessages.remove(message.getHandshakeKey());
 
-            print(String.format("Handshake reply received for %s. Sending to %s:%d.", 
-                  waitingMessage.getClass().getName(), waitingMessage.getReceiverAddress().getHostAddress(), 
-                  waitingMessage.getReceiverPort()
-            ));
+            print(String.format("Handshake reply received for %s. Sending to %s:%d.",
+                    waitingMessage.getClass().getName(), waitingMessage.getReceiverAddress().getHostAddress(),
+                    waitingMessage.getReceiverPort()));
             sendMessage(waitingMessage, waitingMessage.getReceiverAddress(), waitingMessage.getReceiverPort());
 
             return true;
@@ -223,8 +254,8 @@ public abstract class TCPCommunicator {
             // Now, respond to the handshake and await the approved message.
             approvedKeys.add(message.getHandshakeKey());
 
-            print(String.format("Handshake from %s:%d for %s.", 
-                  message.getSenderAddress().getHostAddress(), message.getSenderPort(), message.getClass().getName()));
+            print(String.format("Handshake from %s:%d for %s.", message.getSenderAddress().getHostAddress(),
+                    message.getSenderPort(), message.getClass().getName()));
             sendMessage(message, message.getSenderAddress(), message.getSenderPort());
 
             return false;
