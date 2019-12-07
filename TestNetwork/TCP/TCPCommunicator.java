@@ -5,6 +5,10 @@ import java.net.*;
 import java.util.HashSet;
 import TCP.messaging.*;
 
+/**
+ * Represents a unit that is capable of sending and receiving messages using
+ * the TCP protocol.
+ */
 public abstract class TCPCommunicator {
 
     protected InetAddress address;
