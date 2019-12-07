@@ -26,42 +26,22 @@ public abstract class TCPNode extends TCPCommunicator {
 
     protected abstract TCPMessage getIntroduction();
 
-    protected abstract String[] getNextNeighbors();
+    protected abstract String getNextNeighbor();
 
     protected abstract void onNeighborDie(String neighborName);
 
-    protected void checkNeighbors() {
-        String[] neighborNames = getNextNeighbors();
+    protected void checkNeighbor() {
+        String neighborName = getNextNeighbor();
+        Node neighbor = getNeighbor(neighborName);
+        boolean success = ping(neighbor.address, neighbor.port);
 
-        ArrayList<PingPackage> pings = new ArrayList<>();
-
-        for (String neighborName : neighborNames) {
-            Node neighbor = getNeighbor(neighborName);
-
-            PingMessage pingMessage = new PingMessage();
-            PingPackage pingPackage = new PingPackage(pingMessage, neighbor.address, neighbor.port);
-            pings.add(pingPackage);
-        }
-        
-        if (!pings.isEmpty()) {
-            boolean[] success = ping(pings);
-
-            for (int i = 0; i < neighborNames.length; i++) {
-                String neighborName = neighborNames[i];
-
-                if (!success[i]) {
-                    onNeighborDie(neighborName);
-                    removeNeighbor(neighborName);
-                }
-            }
-        }
-
-        setTimeout(1000);
+        if (!success)
+            onNeighborDie(neighborName);
     }
 
     @Override
     protected void onListenTimeout() {
-        checkNeighbors();
+        checkNeighbor();
     }
 
     protected void setNeighbor(String name, InetAddress address, int port) {

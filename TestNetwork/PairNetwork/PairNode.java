@@ -19,7 +19,7 @@ public class PairNode extends TCPNode {
         if (neighborAddress != null) {
             introduceToNode(neighborAddress, neighborPort);
             setNeighbor("next", neighborAddress, neighborPort);
-            checkNeighbors();
+            checkNeighbor();
         }
 
         listen();
@@ -46,8 +46,8 @@ public class PairNode extends TCPNode {
     }
 
     @Override
-    protected String[] getNextNeighbors() {
-        return new String[] { "next" };
+    protected String getNextNeighbor() {
+        return "next";
     }
 
     @Override

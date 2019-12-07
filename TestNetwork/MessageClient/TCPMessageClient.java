@@ -37,7 +37,7 @@ public class TCPMessageClient extends TCPCommunicator {
     }
 
     @Override
-    protected void onPingAnswered() {
+    protected void onListenTimeout() {
         // TODO Auto-generated method stub
 
     }

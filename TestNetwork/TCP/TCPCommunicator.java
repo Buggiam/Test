@@ -2,7 +2,6 @@ package TCP;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import TCP.messaging.*;
@@ -58,13 +57,12 @@ public abstract class TCPCommunicator {
     }
 
     protected void listen(int listenForMs) {
-        if (listenForMs != 0)
-            setTimeout(listenForMs);
-        else
-            setTimeout(1000);    
-        long timeStarted = System.currentTimeMillis();
+        while (true) {
+            if (listenForMs != 0)
+                setTimeout(listenForMs);  
+            else
+                setTimeout(1000);
 
-        while (listenForMs == 0 || System.currentTimeMillis() - timeStarted < listenForMs) {
             print(String.format("Listening at socket %s...", getFullAddress()));
             buffer = new byte[TCPMessage.BYTE_SIZE];
 
@@ -72,13 +70,16 @@ public abstract class TCPCommunicator {
             try {
                 socket.receive(receivePacket);
             } catch (IOException e) {
-                if (listenForMs == 0)
+                if (listenForMs == 0) {
                     onListenTimeout();
-                continue;
+                    continue;
+                } else {
+                    break;
+                }   
             }
 
             boolean finishedHandshake = processMessage(receivePacket.getData());
-            if (finishedHandshake)
+            if (listenForMs != 0 && finishedHandshake)
                 break;
         }
     }
@@ -87,46 +88,29 @@ public abstract class TCPCommunicator {
         listen(0);
     }
 
-    protected boolean[] ping(ArrayList<PingPackage> packages) {
-        boolean[] results = new boolean[packages.size()];
-        
-        for (int i = 0; i < packages.size(); i++) {
-            PingPackage pingPackage = packages.get(i);
+    protected boolean ping(InetAddress toAddress, int toPort) {
+        PingMessage message = new PingMessage(); 
 
-            pingPackage.getMessage().setSender(address, port);
+        message.setSender(address, port);
+        message.setReceiver(toAddress, toPort);
 
-            pinged.add(pingPackage.getMessage().getHandshakeKey());
+        pinged.add(message.getHandshakeKey());
 
-            if (pingPackage.getToAddress().equals(address) && pingPackage.getToPort() == port) {
-                // Self ping
-                pinged.remove(pingPackage.getMessage().getHandshakeKey());
-                continue;
+        if (toAddress.equals(address) && toPort == port) {
+            // Self ping
+            pinged.remove(message.getHandshakeKey());
+        } else {
+            boolean sent = sendMessage(message, toAddress, toPort);
+
+            if (sent) { 
+                listen(100);
             }
-
-            sendMessage(pingPackage.getMessage(), pingPackage.getToAddress(), pingPackage.getToPort());
         }
 
-        if (!pinged.isEmpty()) listen(30);
-
-        for (int i = 0; i < packages.size(); i++) {
-            PingPackage pingPackage = packages.get(i);        
-            results[i] = !pinged.contains(pingPackage.getMessage().getHandshakeKey());
-        }
-
+        boolean success = !pinged.contains(message.getHandshakeKey());
         pinged.clear();
 
-        return results;
-    }
-
-    protected boolean ping(InetAddress toAddress, int toPort) {
-        ArrayList<PingPackage> packagesToSend = new ArrayList<>();
-
-        PingMessage message = new PingMessage(); 
-        PingPackage pingPackage = new PingPackage(message, toAddress, toPort);
-        packagesToSend.add(pingPackage);
-
-        boolean[] results = ping(packagesToSend);
-        return results[0];
+        return success;
     }
 
     protected boolean sendTCPMessage(TCPMessage message, InetAddress sendToAddress, int sendToPort) {
@@ -151,7 +135,7 @@ public abstract class TCPCommunicator {
 
         waitingMessages.put(message.getHandshakeKey(), message);
 
-        listen(200);
+        listen(100);
 
         return !waitingMessages.containsKey(message.getHandshakeKey());
     }
@@ -203,10 +187,10 @@ public abstract class TCPCommunicator {
         if (message instanceof PingMessage) {
             PingMessage pingMessage = (PingMessage) message;
 
-            if (pinged.contains(pingMessage.getHandshakeKey())) {
+            if (pingMessage.getSenderAddress().equals(address) && pingMessage.getSenderPort() == port) {
                 // The print was sent from here and was a success.
                 pinged.remove(pingMessage.getHandshakeKey());
-                return false;
+                return true;
             } else {
                 // The ping was sent to this node. Reply.
                 sendMessage(pingMessage, message.getSenderAddress(), message.getSenderPort());

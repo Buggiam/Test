@@ -33,8 +33,6 @@ public class RingNode extends TCPNode {
             NodeLostMessage lostMessage = (NodeLostMessage) message;
             processNodeLost(lostMessage);
         }
-
-        listen();
     }
 
     @Override
@@ -43,28 +41,25 @@ public class RingNode extends TCPNode {
     }
 
     @Override
-    protected String[] getNextNeighbors() {
-        return new String[] { "next" }; 
+    protected String getNextNeighbor() {
+        return "next";
     }
 
     @Override
     protected void onNeighborDie(String neighborName) {
         System.out.println("Neighbor lost: " + neighborName);
-        
-        if (!hasNeighbor("nextnext")) {
-            // No network to restore, since this is the only node left.
-            return;
+
+        if (hasNeighbor("nextnext")) {
+            System.out.println("Restoring network...");
+            Node lostNode = getNeighbor("next");
+            Node lostNodeNext = getNeighbor("nextnext");
+            NodeLostMessage lostMessage = new NodeLostMessage(address, port, lostNode.address, lostNode.port,
+                    lostNodeNext.address, lostNodeNext.port);
+
+            sendTCPMessage(lostMessage, lostNodeNext.address, lostNodeNext.port);
         }
 
-        System.out.println("Restoring network...");
-        Node lostNode = getNeighbor("next");
-        Node lostNodeNext = getNeighbor("nextnext");
-        NodeLostMessage lostMessage = new NodeLostMessage(address, port, lostNode.address, lostNode.port,
-                lostNodeNext.address, lostNodeNext.port);
-
-        sendTCPMessage(lostMessage, getNeighbor("nextnext").address, getNeighbor("nextnext").port);
-
-        listen();
+        removeNeighbor("next");
     }
 
     private void processIntroduction(RingIntroduction intro) {
@@ -103,14 +98,12 @@ public class RingNode extends TCPNode {
 
             sendTCPMessage(intro, intro.getIntroducedAddress(), intro.getIntroducedPort());
 
-            checkNeighbors();
+            checkNeighbor();
 
             break;
         case Transfer:
             setNeighbor("next", intro.getNextAddress(), intro.getNextPort());
             setNeighbor("nextnext", intro.getNextNextAddress(), intro.getNextNextPort());
-
-            
 
             break;
         }
@@ -136,8 +129,8 @@ public class RingNode extends TCPNode {
             // This is the node after the lost node.
             // The lonely node needs to know the node after this one.
             lost.setLostNextNext(next.address, next.port);
-        } 
-        
+        }
+
         if (lost.getLostAddress().equals(nextNext.address) && lost.getLostPort() == nextNext.port) {
             // nextNext is the one that is lost.
             // replace with the one after the lost node
@@ -147,7 +140,10 @@ public class RingNode extends TCPNode {
         printNeighbors();
 
         // Now forward the message around the network.
-        sendTCPMessage(lost, next.address, next.port);
+
+        if (hasNeighbor("next")) {
+            sendTCPMessage(lost, next.address, next.port);
+        }
     }
 
     private void printNeighbors() {
