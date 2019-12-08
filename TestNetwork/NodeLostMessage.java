@@ -62,4 +62,9 @@ public class NodeLostMessage extends TCPMessage {
     public int getLostNextNextPort() {
         return lostNextNextPort;
     }
+
+    @Override
+    public String toString() {
+        return String.format("NodeLostMessage[%s:%d]", lostAddress.getHostAddress(), lostPort);
+    }
 }

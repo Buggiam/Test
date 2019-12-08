@@ -88,7 +88,7 @@ public abstract class TCPCommunicator {
             else
                 setTimeout(500);
 
-            print(String.format("Listening at socket %s...", getFullAddress()));
+            print(String.format("Listening at socket %s...%n", getFullAddress()));
             buffer = new byte[TCPMessage.BYTE_SIZE];
 
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
@@ -129,9 +129,9 @@ public abstract class TCPCommunicator {
      */
     protected boolean ping(InetAddress toAddress, int toPort, int key) {
         PingMessage message = new PingMessage();
-
         message.setSender(address, port);
         message.setReceiver(toAddress, toPort);
+        
         if (key != 0) {
             message.setHandshakeKey(key);
             message.setIsHandshake(true);
@@ -183,18 +183,18 @@ public abstract class TCPCommunicator {
 
         if (toAddress.equals(address) && toPort == port) {
             // Message sent to self is transfered internally.
-            print(String.format("Took in %s.", message.toString()));
+            print(String.format("Took in %s from self.", message.toString()));
             takeInMessage(message);
             return true;
         }
 
         if (!ping(toAddress, toPort, message.getHandshakeKey())) {
-            print(String.format("Handshake with %s:%d for %s failed.", message.getReceiverAddress().getHostAddress(),
-                    message.getReceiverPort(), message.getClass().getName()));
+            print(String.format("Handshake for %s with %s:%d failed.", message.toString(),
+                    message.getReceiverAddress().getHostAddress(), message.getReceiverPort()));
             return false;
         }
 
-        print(String.format("Handshake reply received for %s. Sending to %s:%d.", message.getClass().getName(),
+        print(String.format("Handshake approved for %s. Sending to %s:%d.", message.toString(),
                 message.getReceiverAddress().getHostAddress(), message.getReceiverPort()));
 
         return sendMessage(message, toAddress, toPort);
@@ -292,7 +292,8 @@ public abstract class TCPCommunicator {
         if (acceptedKeys.contains(message.getHandshakeKey())) {
             // Approved message received
             acceptedKeys.remove(message.getHandshakeKey());
-            print(String.format("Took in %s.", message.toString()));
+            print(String.format("Took in %s from %s:%d.", message.toString(),
+                    message.getSenderAddress().getHostAddress(), message.getSenderPort()));
             takeInMessage(message);
         }
 
