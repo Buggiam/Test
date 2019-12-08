@@ -6,8 +6,8 @@ import java.util.HashSet;
 import TCP.messaging.*;
 
 /**
- * Represents a unit that is capable of sending and receiving messages using
- * the TCP protocol.
+ * Represents a unit that is capable of sending and receiving messages using the
+ * TCP protocol.
  */
 public abstract class TCPCommunicator {
 
@@ -17,26 +17,42 @@ public abstract class TCPCommunicator {
     private DatagramSocket socket;
     private byte[] buffer;
 
+    /**
+     * Contains TCPMessage-keys of pings that have been sent but not yet accepted by
+     * the receiver. When a ping is accepted by it's receiver, it is removed from
+     * this list.
+     */
     private HashSet<Integer> pingedKeys;
+
+    /**
+     * Contains TCPMessage-keys that have been sent to this unit and accepted. If or
+     * when a message is received with a key contained in this list, it is assumed
+     * that the message is welcome and the message is then 'taken in'. The key is
+     * then removed from the list.
+     */
     private HashSet<Integer> acceptedKeys;
 
-    private boolean print = true;
     private String lastPrint = "";
 
+    /**
+     * @return InetAddress of the socket.
+     */
     public InetAddress getAddress() {
         return address;
     }
 
+    /**
+     * @return Port of the socket.
+     */
     public int getPort() {
         return port;
     }
 
+    /**
+     * @return a String containing the address and port of the socket.
+     */
     public String getFullAddress() {
         return String.format("%s:%d", address.getHostAddress(), port);
-    }
-
-    public void setPrintDetails(boolean print) {
-        this.print = print;
     }
 
     protected TCPCommunicator(int port) {
@@ -108,7 +124,7 @@ public abstract class TCPCommunicator {
      * 
      * @param toAddress InetAddress of the targeted socket.
      * @param toPort    Port of the targeted socket.
-     * @param key       Key of message to be accepted with ping.
+     * @param key       Key of message to be requested with ping.
      * @return true if a response was received. Otherwise false.
      */
     protected boolean ping(InetAddress toAddress, int toPort, int key) {
@@ -163,7 +179,7 @@ public abstract class TCPCommunicator {
     protected boolean sendTCPMessage(TCPMessage message, InetAddress toAddress, int toPort) {
         message.setSender(address, port);
         message.setReceiver(toAddress, toPort);
-        message.generateKey();
+        message.generateHandshakeKey();
 
         if (toAddress.equals(address) && toPort == port) {
             // Message sent to self is transfered internally.
@@ -197,8 +213,13 @@ public abstract class TCPCommunicator {
      */
     protected abstract void onListenTimeout();
 
+    /**
+     * Prints a status to the console. Will not duplicate the last print.
+     * 
+     * @param toPrint string to be printed.
+     */
     protected void print(String toPrint) {
-        if (print && !lastPrint.equals(toPrint)) {
+        if (!lastPrint.equals(toPrint)) {
             System.out.println(toPrint);
             lastPrint = toPrint;
         }
@@ -207,7 +228,7 @@ public abstract class TCPCommunicator {
     /**
      * Sets socket timeout.
      * 
-     * @param ms
+     * @param ms amount of time (in milliseconds) until the socket times out.
      */
     private void setTimeout(int ms) {
         try {
@@ -256,7 +277,7 @@ public abstract class TCPCommunicator {
         if (message instanceof PingMessage) {
             PingMessage pingMessage = (PingMessage) message;
             if (pingMessage.getSenderAddress().equals(address) && pingMessage.getSenderPort() == port) {
-                // The ping was sent from here and was a success.
+                // The ping was sent from here and was approved by it's receiver.
                 pingedKeys.remove(pingMessage.getHandshakeKey());
                 return true;
             } else {
@@ -271,7 +292,6 @@ public abstract class TCPCommunicator {
         if (acceptedKeys.contains(message.getHandshakeKey())) {
             // Approved message received
             acceptedKeys.remove(message.getHandshakeKey());
-
             print(String.format("Took in %s.", message.toString()));
             takeInMessage(message);
         }

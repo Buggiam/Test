@@ -48,7 +48,7 @@ public abstract class TCPMessage implements Serializable {
         return messageBytes;
     }
 
-    public void generateKey() {
+    public void generateHandshakeKey() {
         handshakeKey = randomKey();
     }
 
