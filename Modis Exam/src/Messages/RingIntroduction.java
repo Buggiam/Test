@@ -17,6 +17,9 @@ public class RingIntroduction extends TCPMessage {
     private int nextPort;
     private InetAddress nextNextAddress;
     private int nextNextPort;
+
+    private long auctionEndTime;
+    private int highestBid = -1;
     
     public RingIntroduction(InetAddress introducedAddress, int introducedPort) {
         super();
@@ -73,6 +76,23 @@ public class RingIntroduction extends TCPMessage {
             case Transfer:
                 break;    
         }
+    }
+
+    public void setAuctionTransfer(long auctionEndTime, int highestBid) {
+        this.auctionEndTime = auctionEndTime;
+        this.highestBid = highestBid;
+    }
+
+    public boolean hasAuctionTransfer() {
+        return auctionEndTime != 0 || highestBid != -1;
+    }
+
+    public long getAuctionEndTime() {
+        return auctionEndTime;
+    }
+
+    public int getHighestBid() {
+        return highestBid;
     }
 
     @Override

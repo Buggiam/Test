@@ -13,7 +13,7 @@ import TCP.messaging.TCPMessage;
 
 public class AuctionServer extends TCPNode {
 
-    private static long auctionEndTime;
+    private long auctionEndTime;
     private int highestBid = -1;   
     
     private static long auctionDuration = 60000;
@@ -136,10 +136,10 @@ public class AuctionServer extends TCPNode {
             // The sender must replace this node's 'nextnext'.
             setNeighbor("nextnext", intro.getIntroducedAddress(), intro.getIntroducedPort());
 
+            intro.setAuctionTransfer(auctionEndTime, highestBid);
+
             intro.progressState();
-
             sendTCPMessage(intro, getNeighbor("next").address, getNeighbor("next").port);
-
             break;
         case Replacement:
             // The introduced node will be put in front of this node in the circle.
@@ -162,15 +162,18 @@ public class AuctionServer extends TCPNode {
             setNeighbor("next", intro.getIntroducedAddress(), intro.getIntroducedPort());
 
             intro.progressState();
-
             sendTCPMessage(intro, intro.getIntroducedAddress(), intro.getIntroducedPort());
 
             checkNeighbor();
-
             break;
         case Transfer:
             setNeighbor("next", intro.getNextAddress(), intro.getNextPort());
             setNeighbor("nextnext", intro.getNextNextAddress(), intro.getNextNextPort());
+
+            if (intro.hasAuctionTransfer()) {
+                auctionEndTime = intro.getAuctionEndTime();
+                highestBid = intro.getHighestBid();
+            }
 
             break;
         }
