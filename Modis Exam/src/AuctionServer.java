@@ -16,7 +16,7 @@ public class AuctionServer extends TCPNode {
     private long auctionEndTime;
     private int highestBid = -1;   
     
-    private static long auctionDuration = 60000;
+    private static long AUCTION_DURATION = 60000;
     
     public AuctionServer(int port, InetAddress neighborAddress, int neighborPort) {
         super(port);
@@ -25,6 +25,10 @@ public class AuctionServer extends TCPNode {
 
         if (neighborAddress != null) {
             introduceToNode(neighborAddress, neighborPort);
+        } else {
+            // This is the first node in the network. Start the auction.
+            auctionEndTime = System.currentTimeMillis()  + AUCTION_DURATION;
+            System.out.println("New auction ending in " + (AUCTION_DURATION / 1000) + " seconds.");
         }
 
         listen();
@@ -92,20 +96,8 @@ public class AuctionServer extends TCPNode {
         }
 
         if (auctionEndTime < System.currentTimeMillis()) {
-            // Auction has run out.
-            auctionEndTime = 0;
-        }
-
-        // Register the bid
-        if (auctionEndTime == 0) {
-            // Start a new auction lasting a minute
-            auctionEndTime = System.currentTimeMillis() + auctionDuration;
-            highestBid = -1;
-
-            System.out.println("New auction ending in " + (auctionDuration / 1000) + " seconds.");
-        }
-
-        if (bid.getAmount() > highestBid) {
+            bid.setOutcome("Exception: Time auction has expired.");
+        } else if (bid.getAmount() > highestBid) {
             highestBid = bid.getAmount();
             System.out.println("Received bid of " + bid.getAmount());
             bid.setOutcome("Success: Bid placed.");
@@ -170,10 +162,8 @@ public class AuctionServer extends TCPNode {
             setNeighbor("next", intro.getNextAddress(), intro.getNextPort());
             setNeighbor("nextnext", intro.getNextNextAddress(), intro.getNextNextPort());
 
-            if (intro.hasAuctionTransfer()) {
-                auctionEndTime = intro.getAuctionEndTime();
-                highestBid = intro.getHighestBid();
-            }
+            auctionEndTime = intro.getAuctionEndTime();
+            highestBid = intro.getHighestBid();
 
             break;
         }

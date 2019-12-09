@@ -4,6 +4,7 @@ java AuctionServer
 1025
 TCPCommunicator initiated at 192.168.0.38:1025.
 > 192.168.0.38:1025 > 192.168.0.38:1025
+New auction ending in 60 seconds.
 Listening at socket 192.168.0.38:1025...
 
 <SERVER-NODE 2>
@@ -35,22 +36,6 @@ Enter port address:
 TCPCommunicator initiated at 192.168.0.38:1030.
 Bid on the auction: "bid {amount} {node-address:node-port}"
 Get current result: "result {node-address:node-port}"
-result localhost:1025
-Gettting result...
-Listening at socket 192.168.0.38:1030...
-Handshake approved for ResultMessage[Null]. Sending to 127.0.0.1:1025.
-Request sent. Awaiting response...
-Listening at socket 192.168.0.38:1030...
-
-<SERVER-NODE 1>
-Took in ResultMessage[Null] from 192.168.0.38:1030.
-Listening at socket 192.168.0.38:1025...
-Handshake approved for ResultMessage[No auction started.]. Sending to 192.168.0.38:1030.
-Listening at socket 192.168.0.38:1025...
-
-<CLIENT 1>
-Took in ResultMessage[No auction started.] from 192.168.0.38:1025.
-Listening at socket 192.168.0.38:1030...
 bid 10 localhost:1025
 Placing bid of 10...
 Handshake approved for BidMessage[10, InProgress]. Sending to 127.0.0.1:1025.
@@ -59,7 +44,6 @@ Listening at socket 192.168.0.38:1030...
 
 <SERVER-NODE 1>
 Took in BidMessage[10, InProgress] from 192.168.0.38:1030.
-New auction ending in 60 seconds.
 Received bid of 10
 Listening at socket 192.168.0.38:1025...
 Handshake approved for BidMessage[10, Success: Bid placed.]. Sending to 192.168.0.38:1026.
@@ -67,7 +51,6 @@ Listening at socket 192.168.0.38:1025...
 
 <SERVER-NODE 2>
 Took in BidMessage[10, Success: Bid placed.] from 192.168.0.38:1025.
-New auction ending in 60 seconds.
 Received bid of 10
 Listening at socket 192.168.0.38:1026...
 Handshake approved for BidMessage[10, Success: Bid placed.]. Sending to 192.168.0.38:1025.

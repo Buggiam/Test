@@ -83,10 +83,6 @@ public class RingIntroduction extends TCPMessage {
         this.highestBid = highestBid;
     }
 
-    public boolean hasAuctionTransfer() {
-        return auctionEndTime != 0 || highestBid != -1;
-    }
-
     public long getAuctionEndTime() {
         return auctionEndTime;
     }
