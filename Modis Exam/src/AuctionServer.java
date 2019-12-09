@@ -16,7 +16,7 @@ public class AuctionServer extends TCPNode {
     private long auctionEndTime;
     private int highestBid = -1;   
     
-    private static long AUCTION_DURATION = 60000;
+    private static long AUCTION_DURATION = 120000;
     
     public AuctionServer(int port, InetAddress neighborAddress, int neighborPort) {
         super(port);
