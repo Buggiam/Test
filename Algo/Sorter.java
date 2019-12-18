@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,18 +46,16 @@ public class Sorter<T extends Comparable<T>> {
     }
 
     public void sort() {
-        switch (algorithm) {
-        case SELECTION_SORT:
+        if (algorithm == Algorithm.SELECTION_SORT)
             selectionSort();
-        case BUBBLE_SORT:
+        else if (algorithm == Algorithm.BUBBLE_SORT)
             bubbleSort();
-        case INSERTION_SORT:
+        else if (algorithm == Algorithm.INSERTION_SORT)
             insertionSort();
-        case MERGE_SORT:
-            mergeSort(0, arr.length - 1);
-        case QUICK_SORT:
+        else if (algorithm == Algorithm.MERGE_SORT)
+            mergeSort(0, arr.length - 1);   
+        else if (algorithm == Algorithm.QUICK_SORT)
             quickSort(0, arr.length - 1);
-        }
     }
 
     public enum Order {
@@ -147,18 +146,12 @@ public class Sorter<T extends Comparable<T>> {
     }
 
     private void swap(final int i, final int j) {
-        if (i < 0 || j < 0 || i >= arr.length || j >= arr.length)
-            throw new IllegalArgumentException("Invalid indeces [" + i + "," + j + "] for list of " + arr.length);
-
         final Comparable temp = arr[i];
         arr[i] = arr[j];
         arr[j] = temp;
     }
 
     private Comparable[] subArray(final int from, final int to) {
-        if (from < 0 || to < 0 || from >= arr.length || to >= arr.length)
-            throw new IllegalArgumentException("Invalid indeces [" + from + "," + to + "] for list of " + arr.length);
-
         final Comparable[] slice = new Comparable[to - from + 1];
         for (int i = 0; i < slice.length; i++)
             slice[i] = arr[from + i];
@@ -167,9 +160,6 @@ public class Sorter<T extends Comparable<T>> {
     }
 
     private boolean isBefore(final int i, final int j) {
-        if (i < 0 || j < 0 || i >= arr.length || j >= arr.length)
-            throw new IllegalArgumentException("Invalid indeces [" + i + "," + j + "] for list of " + arr.length);
-
         return isBefore(arr[i], arr[j]);
     }
 
