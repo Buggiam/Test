@@ -7,11 +7,11 @@ public class Test {
         int amount = 10000;
         ArrayList<String> list = random(amount, 10);
 
-        Sorter sorter = new Sorter<String>(list);
+        Sorter sorter = new Sorter<String>(list, Sorter.Algorithm.MERGE_SORT, Sorter.Order.ASC);
         Timer timer = new Timer();
 
         timer.start("Sort on " + amount);
-        sorter.mergeSort();
+        sorter.sort();
         timer.stop();
 
         System.out.println("Sorted? " + (sorter.isSorted() ? "YES" : "NO"));
