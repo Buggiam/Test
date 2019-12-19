@@ -1,10 +1,9 @@
 public class Timer {
 
-    private String task;
     private long startTime;
 
     public void start(String task) {
-        this.task = task;
+        System.out.printf("Performing %s...%n", task);
         startTime = System.nanoTime();
     }
 
@@ -21,7 +20,7 @@ public class Timer {
         }
         
         double timePassedMs = ((double) timePassed) / 1000000;
-        System.out.printf("Performed [%s] in %.3fms.%n", task, timePassedMs, timePassed);
+        System.out.printf("  Completed in %.3fms.%n", timePassedMs, timePassed);
 
         startTime = 0;
     }

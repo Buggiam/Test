@@ -4,17 +4,28 @@ import java.util.Random;
 public class Test {
 
     public static void main(String[] args) {
-        int amount = 100000;
-        ArrayList<String> list = random(amount, 10);
+        //fullSortingTest(10000, 10);
+        sortingTest(Sorter.Algorithm.QUICK_SORT, Sorter.Order.ASC, 1000000, 10);
+    }
 
-        Sorter sorter = new Sorter<String>(list);
+    private static void sortingTest(Sorter.Algorithm alg, Sorter.Order ord, int listSize, int stringLength) {
+        ArrayList<String> list = random(listSize, stringLength);
+        Sorter sorter = new Sorter<String>(list, alg);
         Timer timer = new Timer();
 
-        timer.start("Sort on " + amount);
+        timer.start(String.format("%s <%s> [%d]:%d", alg, ord, listSize, stringLength));
         sorter.sort();
         timer.stop();
 
-        System.out.println("Sorted? " + (sorter.isSorted() ? "YES" : "NO"));
+        System.out.println("  Sorted? " + (sorter.isSorted() ? "YES" : "NO"));
+    }
+
+    private static void fullSortingTest(int listSize, int stringLength) {
+        for (Sorter.Algorithm alg : Sorter.Algorithm.values()) {
+            for (Sorter.Order ord : Sorter.Order.values()) {
+                sortingTest(alg, ord, listSize, stringLength);
+            }
+        }
     }
 
     private static ArrayList<String> random(int amount, int length) {
@@ -26,7 +37,7 @@ public class Test {
         return list;
     }
 
-    public static String randomString(int length) {
+    private static String randomString(int length) {
 
         int leftLimit = 97; // letter 'a'
         int rightLimit = 122; // letter 'z'
