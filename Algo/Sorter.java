@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Sorter<T extends Comparable<T>> {
@@ -73,14 +72,12 @@ public class Sorter<T extends Comparable<T>> {
             quickSort(0, arr.length - 1);
         else if (algorithm == Algorithm.TIM_SORT)
             timSort(0, arr.length - 1, 32);
-    }
-
-    public enum Order {
-        ASC, DESC;
+        else if (algorithm == Algorithm.HEAP_SORT)
+            heapSort();    
     }
 
     public enum Algorithm {
-        SELECTION_SORT, BUBBLE_SORT, INSERTION_SORT, MERGE_SORT, QUICK_SORT, TIM_SORT;
+        SELECTION_SORT, BUBBLE_SORT, INSERTION_SORT, MERGE_SORT, QUICK_SORT, TIM_SORT, HEAP_SORT;
     }
 
     private void selectionSort() {
@@ -175,6 +172,17 @@ public class Sorter<T extends Comparable<T>> {
         timSort(l, m, run);
         timSort(m + 1, r, run);
         merge(l, m, r);
+    }
+
+    private void heapSort() {
+        Heap heap = new Heap<T>(order);
+        heap.add(arr);
+        Comparable[] newArr = new Comparable[arr.length];
+
+        for (int i = 0; i < arr.length; i++)
+            newArr[i] = heap.take();
+
+        arr = newArr;    
     }
 
     private void swap(final int i, final int j) {

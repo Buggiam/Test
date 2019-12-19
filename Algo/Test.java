@@ -4,15 +4,13 @@ import java.util.Random;
 public class Test {
 
     public static void main(String[] args) {
-        //fullSortingTest(10000, 10);
-        ArrayList<String> list = random(10000, 10);
-        sortingTest(list, Sorter.Algorithm.MERGE_SORT, Sorter.Order.ASC);
-        sortingTest(list, Sorter.Algorithm.QUICK_SORT, Sorter.Order.ASC);
-        sortingTest(list, Sorter.Algorithm.TIM_SORT, Sorter.Order.ASC);
+        fullSortingTest(10000, 10);
+        //ArrayList<String> list = random(1000000, 10);
+        //sortingTest(list, Sorter.Algorithm.HEAP_SORT, Order.ASC);
     }
 
-    private static void sortingTest(ArrayList<String> list, Sorter.Algorithm alg, Sorter.Order ord) {
-        Sorter sorter = new Sorter<String>(list, alg);
+    private static void sortingTest(ArrayList<String> list, Sorter.Algorithm alg, Order ord) {
+        Sorter<String> sorter = new Sorter<String>(list, alg);
         Timer timer = new Timer();
 
         timer.start(String.format("%s <%s>", alg, ord));
@@ -22,7 +20,7 @@ public class Test {
         System.out.println("  Sorted? " + (sorter.isSorted() ? "YES" : "NO"));
     }
 
-    private static void sortingTest(Sorter.Algorithm alg, Sorter.Order ord, int listSize, int stringLength) {
+    private static void sortingTest(Sorter.Algorithm alg, Order ord, int listSize, int stringLength) {
         ArrayList<String> list = random(listSize, stringLength);
         sortingTest(list, alg, ord);
     }
@@ -32,7 +30,7 @@ public class Test {
         ArrayList<String> list = random(listSize, stringLength);
 
         for (Sorter.Algorithm alg : Sorter.Algorithm.values()) {
-            for (Sorter.Order ord : Sorter.Order.values()) {
+            for (Order ord : Order.values()) {
                 sortingTest(list, alg, ord);
             }
         }

@@ -1,4 +1,7 @@
-public class Searcher {
+public class Searcher<T extends Comparable<T>> {
 
+    public Searcher() {
+        
+    }
     
 }
