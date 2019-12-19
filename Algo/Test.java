@@ -8,22 +8,29 @@ public class Test {
         //sortingTest(Sorter.Algorithm.TIM_SORT, Sorter.Order.ASC, 10000000, 10);
     }
 
-    private static void sortingTest(Sorter.Algorithm alg, Sorter.Order ord, int listSize, int stringLength) {
-        ArrayList<String> list = random(listSize, stringLength);
+    private static void sortingTest(ArrayList<String> list, Sorter.Algorithm alg, Sorter.Order ord) {
         Sorter sorter = new Sorter<String>(list, alg);
         Timer timer = new Timer();
 
-        timer.start(String.format("%s <%s> [%d]:%d", alg, ord, listSize, stringLength));
+        timer.start(String.format("%s <%s>", alg, ord));
         sorter.sort();
         timer.stop();
 
         System.out.println("  Sorted? " + (sorter.isSorted() ? "YES" : "NO"));
     }
 
+    private static void sortingTest(Sorter.Algorithm alg, Sorter.Order ord, int listSize, int stringLength) {
+        ArrayList<String> list = random(listSize, stringLength);
+        sortingTest(list, alg, ord);
+    }
+
     private static void fullSortingTest(int listSize, int stringLength) {
+        System.out.printf("Generating list[%d]:%d%n", listSize, stringLength);
+        ArrayList<String> list = random(listSize, stringLength);
+
         for (Sorter.Algorithm alg : Sorter.Algorithm.values()) {
             for (Sorter.Order ord : Sorter.Order.values()) {
-                sortingTest(alg, ord, listSize, stringLength);
+                sortingTest(list, alg, ord);
             }
         }
     }
