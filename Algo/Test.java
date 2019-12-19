@@ -4,9 +4,9 @@ import java.util.Random;
 public class Test {
 
     public static void main(String[] args) {
-        fullSortingTest(10000, 10);
-        //ArrayList<String> list = random(10, 10);
-        //sortingTest(list, Sorter.Algorithm.HEAP_SORT, Order.ASC);
+        //fullSortingTest(10000, 10);
+        ArrayList<String> list = random(10, 10);
+        sortingTest(list, Sorter.Algorithm.HEAP_SORT, Order.ASC);
     }
 
     private static void sortingTest(ArrayList<String> list, Sorter.Algorithm alg, Order ord) {
