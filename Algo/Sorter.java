@@ -14,32 +14,16 @@ public class Sorter<T extends Comparable<T>> {
         this.order = order;
     }
 
-    public Sorter(T[] arr, Algorithm algorithm) {
-        this(arr, algorithm, Order.ASC);
-    }
-
     public Sorter(T[] arr, Order order) {
-        this(arr, Algorithm.QUICK_SORT, order);
-    }
-
-    public Sorter(T[] arr) {
-        this(arr, Order.ASC);
+        this(arr, Algorithm.TIM_SORT, order);
     }
 
     public Sorter(List<T> list, Algorithm algorithm, Order order) {
         this(list.toArray((T[]) new Comparable[list.size()]), algorithm, order);
     }
 
-    public Sorter(List<T> list, Algorithm algorithm) {
-        this(list.toArray((T[]) new Comparable[list.size()]), algorithm, Order.ASC);
-    }
-
     public Sorter(List<T> list, Order order) {
-        this(list.toArray((T[]) new Comparable[list.size()]), Algorithm.QUICK_SORT, order);
-    }
-
-    public Sorter(List<T> list) {
-        this(list.toArray((T[]) new Comparable[list.size()]), Order.ASC);
+        this(list.toArray((T[]) new Comparable[list.size()]), Algorithm.TIM_SORT, order);
     }
 
     public List<T> getList() {
@@ -76,7 +60,15 @@ public class Sorter<T extends Comparable<T>> {
             heapSort();    
     }
 
-    public enum Algorithm {
+    public Algorithm getAlgorithm() {
+        return algorithm;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public static enum Algorithm {
         SELECTION_SORT, BUBBLE_SORT, INSERTION_SORT, MERGE_SORT, QUICK_SORT, TIM_SORT, HEAP_SORT;
     }
 

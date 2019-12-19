@@ -2,15 +2,13 @@ public class Heap<T extends Comparable<T>> {
 
     private T[] values;
     private int[] heap;
-
     int openIndex = 0;
     private Order order;
 
     public Heap(T[] arr, Order order) {
-        this.order = order;
-
         values = arr;
         heap = new int[arr.length];
+        this.order = order;
 
         for (int i = 0; i < values.length; i++) {
             addToHeap(openIndex, i);

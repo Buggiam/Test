@@ -5,22 +5,28 @@ public class Test {
 
     public static void main(String[] args) {
         //fullSortingTest(10000, 10);
-        ArrayList<String> list = random(1000000, 10);
-        sortingTest(list, Sorter.Algorithm.HEAP_SORT, Order.ASC);
-        sortingTest(list, Sorter.Algorithm.MERGE_SORT, Order.ASC);
-        sortingTest(list, Sorter.Algorithm.QUICK_SORT, Order.ASC);
-        sortingTest(list, Sorter.Algorithm.TIM_SORT, Order.ASC);
+        ArrayList<String> list = random(10000000, 10);
+        sortingTest(list);
     }
 
-    private static void sortingTest(ArrayList<String> list, Sorter.Algorithm alg, Order ord) {
-        Sorter<String> sorter = new Sorter<String>(list, alg);
+    private static void sortingTest(Sorter<String> sorter) {
         Timer timer = new Timer();
 
-        timer.start(String.format("%s <%s>", alg, ord));
+        timer.start(String.format("%s <%s>", sorter.getAlgorithm(), sorter.getOrder()));
         sorter.sort();
         timer.stop();
 
         System.out.println("  Sorted? " + (sorter.isSorted() ? "YES" : "NO"));
+    }
+
+    private static void sortingTest(ArrayList<String> list) {
+        Sorter<String> sorter = new Sorter<String>(list, Order.ASC);
+        sortingTest(sorter);
+    }
+
+    private static void sortingTest(ArrayList<String> list, Sorter.Algorithm alg, Order order) {
+        Sorter<String> sorter = new Sorter<String>(list, alg, order);
+        sortingTest(sorter);
     }
 
     private static void sortingTest(Sorter.Algorithm alg, Order ord, int listSize, int stringLength) {
