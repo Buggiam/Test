@@ -9,23 +9,38 @@ public class Sorter<T extends Comparable<T>> {
     private Order order;
     private Algorithm algorithm;
 
-    public Sorter(final List<T> list, final Algorithm algorithm, final Order order) {
-        arr = (T[]) new Comparable[list.size()];
-        arr = list.toArray(arr);
+    public Sorter(T[] arr, final Algorithm algorithm, final Order order) {
+        this.arr = arr;
         this.algorithm = algorithm;
         this.order = order;
     }
 
+    public Sorter(T[] arr, final Algorithm algorithm) {
+        this(arr, algorithm, Order.ASC);
+    }
+
+    public Sorter(T[] arr, final Order order) {
+        this(arr, Algorithm.QUICK_SORT, order);
+    }
+
+    public Sorter(T[] arr) {
+        this(arr, Order.ASC);
+    }
+    
+    public Sorter(final List<T> list, final Algorithm algorithm, final Order order) {
+        this((T[]) list.toArray(new Comparable[list.size()]), algorithm, order);
+    }
+
     public Sorter(final List<T> list, final Algorithm algorithm) {
-        this(list, algorithm, Order.ASC);
+        this((T[]) list.toArray(new Comparable[list.size()]), algorithm, Order.ASC);
     }
 
     public Sorter(final List<T> list, final Order order) {
-        this(list, Algorithm.QUICK_SORT, order);
+        this((T[]) list.toArray(new Comparable[list.size()]), Algorithm.QUICK_SORT, order);
     }
 
     public Sorter(final List<T> list) {
-        this(list, Order.ASC);
+        this((T[]) list.toArray(new Comparable[list.size()]), Order.ASC);
     }
 
     public List<T> getList() {
@@ -40,7 +55,7 @@ public class Sorter<T extends Comparable<T>> {
 
     public boolean isSorted() {
         for (int i = 1; i < arr.length; i++)
-            if (!isBefore(i - 1, i))
+            if (!isBefore(i - 1, i) && !areEqual(i - 1, i))
                 return false;
         return true;
     }
@@ -53,7 +68,7 @@ public class Sorter<T extends Comparable<T>> {
         else if (algorithm == Algorithm.INSERTION_SORT)
             insertionSort();
         else if (algorithm == Algorithm.MERGE_SORT)
-            mergeSort(0, arr.length - 1);   
+            mergeSort(0, arr.length - 1);
         else if (algorithm == Algorithm.QUICK_SORT)
             quickSort(0, arr.length - 1);
     }
@@ -173,5 +188,13 @@ public class Sorter<T extends Comparable<T>> {
         default:
             return false;
         }
+    }
+
+    private boolean areEqual(final int i, final int j) {
+        return areEqual(arr[i], arr[j]);
+    }
+
+    private boolean areEqual(final Comparable a, final Comparable b) {
+        return a.compareTo(b) == 0;
     }
 }

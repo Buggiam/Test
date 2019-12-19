@@ -4,10 +4,10 @@ import java.util.Random;
 public class Test {
 
     public static void main(String[] args) {
-        int amount = 10000;
+        int amount = 100000;
         ArrayList<String> list = random(amount, 10);
 
-        Sorter sorter = new Sorter<String>(list, Sorter.Algorithm.QUICK_SORT, Sorter.Order.ASC);
+        Sorter sorter = new Sorter<String>(list);
         Timer timer = new Timer();
 
         timer.start("Sort on " + amount);
