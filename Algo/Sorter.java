@@ -3,22 +3,22 @@ import java.util.List;
 
 public class Sorter<T extends Comparable<T>> {
 
-    private Comparable[] arr;
+    private T[] arr;
     private List<T> list;
     private Order order;
     private Algorithm algorithm;
 
-    public Sorter(T[] arr, final Algorithm algorithm, final Order order) {
+    public Sorter(T[] arr, Algorithm algorithm, Order order) {
         this.arr = arr;
         this.algorithm = algorithm;
         this.order = order;
     }
 
-    public Sorter(T[] arr, final Algorithm algorithm) {
+    public Sorter(T[] arr, Algorithm algorithm) {
         this(arr, algorithm, Order.ASC);
     }
 
-    public Sorter(T[] arr, final Order order) {
+    public Sorter(T[] arr, Order order) {
         this(arr, Algorithm.QUICK_SORT, order);
     }
 
@@ -26,27 +26,27 @@ public class Sorter<T extends Comparable<T>> {
         this(arr, Order.ASC);
     }
 
-    public Sorter(final List<T> list, final Algorithm algorithm, final Order order) {
-        this((T[]) list.toArray(new Comparable[list.size()]), algorithm, order);
+    public Sorter(List<T> list, Algorithm algorithm, Order order) {
+        this(list.toArray((T[]) new Comparable[list.size()]), algorithm, order);
     }
 
-    public Sorter(final List<T> list, final Algorithm algorithm) {
-        this((T[]) list.toArray(new Comparable[list.size()]), algorithm, Order.ASC);
+    public Sorter(List<T> list, Algorithm algorithm) {
+        this(list.toArray((T[]) new Comparable[list.size()]), algorithm, Order.ASC);
     }
 
-    public Sorter(final List<T> list, final Order order) {
-        this((T[]) list.toArray(new Comparable[list.size()]), Algorithm.QUICK_SORT, order);
+    public Sorter(List<T> list, Order order) {
+        this(list.toArray((T[]) new Comparable[list.size()]), Algorithm.QUICK_SORT, order);
     }
 
-    public Sorter(final List<T> list) {
-        this((T[]) list.toArray(new Comparable[list.size()]), Order.ASC);
+    public Sorter(List<T> list) {
+        this(list.toArray((T[]) new Comparable[list.size()]), Order.ASC);
     }
 
     public List<T> getList() {
         if (list == null) {
             list = new ArrayList<>();
-            for (final Comparable obj : arr)
-                list.add((T) obj);
+            for (T obj : arr)
+                list.add(obj);
         }
 
         return list;
@@ -110,19 +110,19 @@ public class Sorter<T extends Comparable<T>> {
         }
     }
 
-    private void mergeSort(final int l, final int r) {
+    private void mergeSort(int l, int r) {
         if (r <= l)
             return;
 
-        final int m = (l + r) / 2;
+        int m = (l + r) / 2;
         mergeSort(l, m);
         mergeSort(m + 1, r);
         merge(l, m, r);
     }
 
-    private void merge(final int l, final int m, final int r) {
-        final Comparable[] left = subArray(l, m);
-        final Comparable[] right = subArray(m + 1, r);
+    private void merge(int l, int m, int r) {
+        T[] left = subArray(l, m);
+        T[] right = subArray(m + 1, r);
 
         int leftI = 0;
         int rightI = 0;
@@ -134,17 +134,17 @@ public class Sorter<T extends Comparable<T>> {
                 arr[i] = right[rightI++];
     }
 
-    private void quickSort(final int low, final int high) {
+    private void quickSort(int low, int high) {
         if (low >= high)
             return;
 
-        final int pivotIndex = partition(low, high);
+        int pivotIndex = partition(low, high);
         quickSort(low, pivotIndex - 1);
         quickSort(pivotIndex + 1, high);
     }
 
-    private int partition(final int low, final int high) {
-        final Comparable pivot = arr[high];
+    private int partition(int low, int high) {
+        T pivot = arr[high];
 
         int i = low - 1;
 
@@ -159,7 +159,7 @@ public class Sorter<T extends Comparable<T>> {
         return i + 1;
     }
 
-    private void timSort(final int l, final int r, int run) {
+    private void timSort(int l, int r, int run) {
         if (r <= l)
             return;
 
@@ -168,15 +168,15 @@ public class Sorter<T extends Comparable<T>> {
             return;
         }    
 
-        final int m = (l + r) / 2;
+        int m = (l + r) / 2;
         timSort(l, m, run);
         timSort(m + 1, r, run);
         merge(l, m, r);
     }
 
     private void heapSort() {
-        Heap heap = new Heap<T>((T[]) arr, order);
-        Comparable[] newArr = new Comparable[arr.length];
+        Heap<T> heap = new Heap<T>((T[]) arr, order);
+        T[] newArr = createTypeArray(arr.length);
 
         for (int i = 0; i < arr.length; i++)
             newArr[i] = heap.take();
@@ -184,26 +184,26 @@ public class Sorter<T extends Comparable<T>> {
         arr = newArr;    
     }
 
-    private void swap(final int i, final int j) {
-        final Comparable temp = arr[i];
+    private void swap(int i, int j) {
+        T temp = arr[i];
         arr[i] = arr[j];
         arr[j] = temp;
     }
 
-    private Comparable[] subArray(final int from, final int to) {
-        final Comparable[] slice = new Comparable[to - from + 1];
+    private T[] subArray(int from, int to) {
+        T[] slice = createTypeArray(to - from + 1);
         for (int i = 0; i < slice.length; i++)
             slice[i] = arr[from + i];
 
         return slice;
     }
 
-    private boolean isBefore(final int i, final int j) {
+    private boolean isBefore(int i, int j) {
         return isBefore(arr[i], arr[j]);
     }
 
-    private boolean isBefore(final Comparable a, final Comparable b) {
-        final int compared = a.compareTo(b);
+    private boolean isBefore(T a, T b) {
+        int compared = a.compareTo(b);
         switch (order) {
         case ASC:
             return compared < 0;
@@ -214,11 +214,15 @@ public class Sorter<T extends Comparable<T>> {
         }
     }
 
-    private boolean areEqual(final int i, final int j) {
+    private boolean areEqual(int i, int j) {
         return areEqual(arr[i], arr[j]);
     }
 
-    private boolean areEqual(final Comparable a, final Comparable b) {
+    private boolean areEqual(T a, T b) {
         return a.compareTo(b) == 0;
+    }
+
+    private T[] createTypeArray(int length) {
+        return (T[]) new Comparable[length];
     }
 }

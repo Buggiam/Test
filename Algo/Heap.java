@@ -32,7 +32,7 @@ public class Heap<T extends Comparable<T>> {
         heap[index] = valueIndex;
 
         int parent = getParent(index);
-        if (isBefore(values[valueIndex], get(parent))) {
+        if (isBefore(index, parent)) {
             heap[index] = heap[parent];
             addToHeap(parent, valueIndex);
         }
@@ -72,10 +72,9 @@ public class Heap<T extends Comparable<T>> {
     }
 
     private boolean isBefore(int i, int j) {
-        return isBefore(get(i), get(j));
-    }
+        T a = get(i);
+        T b = get(j);
 
-    private boolean isBefore(T a, T b) {
         if (b == null)
             return true;
 
@@ -89,5 +88,4 @@ public class Heap<T extends Comparable<T>> {
             return false;
         }
     }
-
 }
