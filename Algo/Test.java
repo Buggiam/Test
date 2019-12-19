@@ -4,8 +4,8 @@ import java.util.Random;
 public class Test {
 
     public static void main(String[] args) {
-        //fullSortingTest(10000, 10);
-        sortingTest(Sorter.Algorithm.QUICK_SORT, Sorter.Order.ASC, 1000000, 10);
+        fullSortingTest(10000, 10);
+        //sortingTest(Sorter.Algorithm.TIM_SORT, Sorter.Order.ASC, 10000000, 10);
     }
 
     private static void sortingTest(Sorter.Algorithm alg, Sorter.Order ord, int listSize, int stringLength) {

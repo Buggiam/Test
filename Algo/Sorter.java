@@ -26,7 +26,7 @@ public class Sorter<T extends Comparable<T>> {
     public Sorter(T[] arr) {
         this(arr, Order.ASC);
     }
-    
+
     public Sorter(final List<T> list, final Algorithm algorithm, final Order order) {
         this((T[]) list.toArray(new Comparable[list.size()]), algorithm, order);
     }
@@ -66,11 +66,13 @@ public class Sorter<T extends Comparable<T>> {
         else if (algorithm == Algorithm.BUBBLE_SORT)
             bubbleSort();
         else if (algorithm == Algorithm.INSERTION_SORT)
-            insertionSort();
+            insertionSort(0, arr.length - 1);
         else if (algorithm == Algorithm.MERGE_SORT)
             mergeSort(0, arr.length - 1);
         else if (algorithm == Algorithm.QUICK_SORT)
             quickSort(0, arr.length - 1);
+        else if (algorithm == Algorithm.TIM_SORT)
+            timSort(0, arr.length - 1, 32);
     }
 
     public enum Order {
@@ -78,7 +80,7 @@ public class Sorter<T extends Comparable<T>> {
     }
 
     public enum Algorithm {
-        SELECTION_SORT, BUBBLE_SORT, INSERTION_SORT, MERGE_SORT, QUICK_SORT;
+        SELECTION_SORT, BUBBLE_SORT, INSERTION_SORT, MERGE_SORT, QUICK_SORT, TIM_SORT;
     }
 
     private void selectionSort() {
@@ -100,9 +102,9 @@ public class Sorter<T extends Comparable<T>> {
                     swap(i, i - 1);
     }
 
-    private void insertionSort() {
-        for (int i = 1; i < arr.length; i++) {
-            for (int j = i - 1; j >= 0; j--) {
+    private void insertionSort(int from, int to) {
+        for (int i = from + 1; i <= to; i++) {
+            for (int j = i - 1; j >= from; j--) {
                 if (isBefore(j + 1, j))
                     swap(j + 1, j);
                 else
@@ -158,6 +160,21 @@ public class Sorter<T extends Comparable<T>> {
 
         swap(i + 1, high);
         return i + 1;
+    }
+
+    private void timSort(final int l, final int r, int run) {
+        if (r <= l)
+            return;
+
+        if (r + 1 - l <= run) {
+            insertionSort(l, r);
+            return;
+        }    
+
+        final int m = (l + r) / 2;
+        timSort(l, m, run);
+        timSort(m + 1, r, run);
+        merge(l, m, r);
     }
 
     private void swap(final int i, final int j) {
