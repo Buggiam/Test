@@ -4,8 +4,11 @@ import java.util.Random;
 public class Test {
 
     public static void main(String[] args) {
-        fullSortingTest(10000, 10);
-        //sortingTest(Sorter.Algorithm.TIM_SORT, Sorter.Order.ASC, 10000000, 10);
+        //fullSortingTest(10000, 10);
+        ArrayList<String> list = random(10000, 10);
+        sortingTest(list, Sorter.Algorithm.MERGE_SORT, Sorter.Order.ASC);
+        sortingTest(list, Sorter.Algorithm.QUICK_SORT, Sorter.Order.ASC);
+        sortingTest(list, Sorter.Algorithm.TIM_SORT, Sorter.Order.ASC);
     }
 
     private static void sortingTest(ArrayList<String> list, Sorter.Algorithm alg, Sorter.Order ord) {
