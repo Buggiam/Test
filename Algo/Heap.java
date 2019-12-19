@@ -1,90 +1,64 @@
 public class Heap<T extends Comparable<T>> {
 
+    private byte[] dir;
+    private Comparable<T>[] heap;
     private Order order;
-    private Node rootNode;
 
-    public Heap(Order order) {
+    int openIndex = 0;
+
+    public Heap(T[] arr, Order order) {
         this.order = order;
-        rootNode = new Node();
-    }
 
-    public void add(Iterable<T> list) {
-        for (T obj : list)
-            add(obj);
-    }
+        heap = new Comparable[arr.length];
+        dir = new byte[arr.length];
 
-    public void add(T[] arr) {
-        for (T obj : arr)
-            add(obj);
-    }
-    
-    public void add(T obj) {
-        rootNode.add(obj);
+        for (T obj : arr) {
+            addToHeap(openIndex, obj);
+            openIndex++;
+        }
     }
 
     public T get() {
-        return rootNode.get();
+        return (T) heap[0];
     }
 
     public T take() {
-        return rootNode.take();
+        T first = get();
+        removeFirst();
+        return first;
     }
 
-    private class Node {
-        private T val = null;
-        private Node left, right;
-        int addDir = -1;
+    private void addToHeap(int index, Comparable<T> obj) {
+        heap[index] = obj;
 
-        public T get() {
-            return val;
+        int parent = getParent(index);
+        if (isBefore(obj, heap[parent])) {
+            heap[index] = heap[parent];
+            addToHeap(parent, obj);
         }
+    }
 
-        public T take() {
-            if (val == null) return null;
+    private void removeFirst() {
 
-            T temp = val;
-            val = null;
+    }
 
-            if (isBefore(left.get(), right.get()))
-                val = left.take();
-            else
-                val = right.take();
+    private int getParent(int index) {
+        return (index - 1) / 2;
+    }
 
-            return temp;
-        }
+    private int getLeftChild(int index) {
+        return index * 2 + 1;
+    }
 
-        public void add(T obj) {
-            if (val == null) {
-                val = obj;
-                left = new Node();
-                right = new Node();
-                return;
-            }
+    private int getRightChild(int index) {
+        return index * 2 + 2;
+    }
 
-            if (isBefore(obj, val)) {
-                addToChild(val);
-                val = obj;
-            } else {
-                addToChild(obj);
-            }
-        }
-
-        private void addToChild(T obj) {
-            if (addDir < 0)
-                left.add(obj);
-            else
-                right.add(obj);
-
-            addDir = -addDir;
-        }
+    private boolean isBefore(int i, int j) {
+        return isBefore(heap[i], heap[j]);
     }
 
     private boolean isBefore(Comparable a, Comparable b) {
-        if (a == null && b != null)
-            return false;
-        if (b == null)
-            return true;
-
         int compared = a.compareTo(b);
         switch (order) {
         case ASC:

@@ -5,7 +5,7 @@ public class Test {
 
     public static void main(String[] args) {
         fullSortingTest(10000, 10);
-        //ArrayList<String> list = random(1000000, 10);
+        //ArrayList<String> list = random(10, 10);
         //sortingTest(list, Sorter.Algorithm.HEAP_SORT, Order.ASC);
     }
 

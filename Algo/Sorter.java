@@ -175,8 +175,7 @@ public class Sorter<T extends Comparable<T>> {
     }
 
     private void heapSort() {
-        Heap heap = new Heap<T>(order);
-        heap.add(arr);
+        Heap heap = new Heap<T>((T[]) arr, order);
         Comparable[] newArr = new Comparable[arr.length];
 
         for (int i = 0; i < arr.length; i++)
